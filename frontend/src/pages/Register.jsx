@@ -4,8 +4,10 @@ import { auth, db, getRecaptchaVerifier, clearRecaptchaVerifier } from '../fireb
 import { signInWithPhoneNumber } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import useAuthStore from '../store/authStore';
+import { useTranslation } from 'react-i18next';
 
 const Register = ({ isDark }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -39,7 +41,7 @@ const Register = ({ isDark }) => {
     setError('');
 
     if (!formData.name || !formData.email || !formData.phone) {
-      setError("Barcha maydonlarni to'ldiring");
+      setError(t('auth.fillAllFields'));
       return;
     }
 
@@ -54,7 +56,7 @@ const Register = ({ isDark }) => {
       setStep(2);
     } catch (err) {
       console.error('SMS yuborishda xatolik:', err);
-      setError('SMS kod yuborishda xatolik yuz berdi. Telefon raqamni tekshiring.');
+      setError(t('auth.smsError'));
       clearRecaptchaVerifier();
     } finally {
       setLoading(false);
@@ -66,7 +68,7 @@ const Register = ({ isDark }) => {
     setError('');
 
     if (!verificationCode) {
-      setError("SMS kodni kiriting");
+      setError(t('auth.enterCode'));
       return;
     }
 
@@ -98,7 +100,7 @@ const Register = ({ isDark }) => {
       navigate('/');
     } catch (err) {
       console.error('Kod tasdiqlashda xatolik:', err);
-      setError('SMS kod noto\'g\'ri. Qaytadan urinib ko\'ring.');
+      setError(t('auth.codeError'));
     } finally {
       setLoading(false);
     }
@@ -109,10 +111,10 @@ const Register = ({ isDark }) => {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className={`mt-6 text-center text-3xl font-extrabold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            {step === 1 ? 'Ro\'yxatdan o\'tish' : 'SMS kodni tasdiqlang'}
+            {step === 1 ? t('auth.registerStep1') : t('auth.registerStep2')}
           </h2>
           <p className={`mt-2 text-center text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            {step === 1 ? 'Ombor ijarasi marketplace platformasi' : `Kod ${formatPhoneNumber(formData.phone)} raqamiga yuborildi`}
+            {step === 1 ? t('auth.registerSubtitle') : t('auth.codeSent', { phone: formatPhoneNumber(formData.phone) })}
           </p>
         </div>
 
@@ -133,7 +135,7 @@ const Register = ({ isDark }) => {
                   value={formData.name}
                   onChange={handleChange}
                   className={`appearance-none relative block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm ${isDark ? 'bg-gray-800 border-gray-600 placeholder-gray-500 text-white' : 'border-gray-300 placeholder-gray-500 text-gray-900'}`}
-                  placeholder="Ism-familiya"
+                  placeholder={t('auth.name')}
                 />
               </div>
 
@@ -145,7 +147,7 @@ const Register = ({ isDark }) => {
                   value={formData.email}
                   onChange={handleChange}
                   className={`appearance-none relative block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm ${isDark ? 'bg-gray-800 border-gray-600 placeholder-gray-500 text-white' : 'border-gray-300 placeholder-gray-500 text-gray-900'}`}
-                  placeholder="Email manzili"
+                  placeholder={t('auth.email')}
                 />
               </div>
 
@@ -157,7 +159,7 @@ const Register = ({ isDark }) => {
                   value={formData.phone}
                   onChange={handleChange}
                   className={`appearance-none relative block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm ${isDark ? 'bg-gray-800 border-gray-600 placeholder-gray-500 text-white' : 'border-gray-300 placeholder-gray-500 text-gray-900'}`}
-                  placeholder="Telefon raqam (90 123 45 67)"
+                  placeholder={t('auth.phonePlaceholder')}
                 />
               </div>
             </div>
@@ -182,7 +184,7 @@ const Register = ({ isDark }) => {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
             >
-              {loading ? 'Yuklanmoqda...' : step === 1 ? 'SMS kod yuborish' : 'Tasdiqlash'}
+              {loading ? t('auth.loading') : step === 1 ? t('auth.sendSms') : t('auth.verifyCode')}
             </button>
           </div>
 
@@ -196,15 +198,15 @@ const Register = ({ isDark }) => {
               }}
               className={`w-full py-2 px-4 border rounded-md text-sm font-medium ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
             >
-              Orqaga
+              {t('auth.back')}
             </button>
           )}
 
           <div className="text-center">
             <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-              Hisobingiz bormi?{' '}
+              {t('auth.hasAccount')}{' '}
               <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
-                Tizimga kiring
+                {t('nav.login')}
               </Link>
             </p>
           </div>
