@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiMenu, FiX, FiUser, FiLogOut, FiSun, FiMoon, FiGlobe } from 'react-icons/fi';
+import { FiMenu, FiX, FiUser, FiLogOut, FiSun, FiMoon, FiGlobe, FiChevronDown } from 'react-icons/fi';
 import useAuthStore from '../store/authStore';
 import { useTranslation } from 'react-i18next';
 import Logo from './Logo';
 
 const Navbar = ({ isDark, toggleDarkMode }) => {
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLangOpen, setIsLangOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuthStore();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
@@ -16,20 +17,18 @@ const Navbar = ({ isDark, toggleDarkMode }) => {
     navigate('/');
   };
 
-  const toggleLanguage = () => {
-    const languages = ['uz', 'ru', 'en'];
-    const currentIndex = languages.indexOf(i18n.language);
-    const nextIndex = (currentIndex + 1) % languages.length;
-    i18n.changeLanguage(languages[nextIndex]);
+  const changeLanguage = (lang) => {
+    i18n.changeLanguage(lang);
+    setIsLangOpen(false);
   };
 
-  const getNextLanguageName = () => {
-    const languages = ['uz', 'ru', 'en'];
-    const names = { uz: 'Русский', ru: 'English', en: 'O\'zbek' };
-    const currentIndex = languages.indexOf(i18n.language);
-    const nextIndex = (currentIndex + 1) % languages.length;
-    return names[languages[nextIndex]];
-  };
+  const languages = [
+    { code: 'uz', name: 'O\'zbek', flag: '🇺🇿' },
+    { code: 'ru', name: 'Русский', flag: '🇷🇺' },
+    { code: 'en', name: 'English', flag: '🇬🇧' },
+  ];
+
+  const currentLang = languages.find(l => l.code === i18n.language) || languages[0];
 
   return (
     <nav className={`sticky top-0 z-50 shadow-md ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
@@ -52,14 +51,33 @@ const Navbar = ({ isDark, toggleDarkMode }) => {
               {t('nav.about')}
             </Link>
 
-            <button
-              onClick={toggleLanguage}
-              className={`${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} p-2 rounded-md`}
-              title={getNextLanguageName()}
-            >
-              <FiGlobe size={20} />
-              <span className="ml-1 text-sm">{i18n.language.toUpperCase()}</span>
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setIsLangOpen(!isLangOpen)}
+                className={`${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} p-2 rounded-md flex items-center gap-1`}
+              >
+                <span className="text-lg">{currentLang.flag}</span>
+                <span className="text-sm">{currentLang.code.toUpperCase()}</span>
+                <FiChevronDown size={16} />
+              </button>
+
+              {isLangOpen && (
+                <div className={`absolute right-0 mt-2 w-40 rounded-md shadow-lg ${isDark ? 'bg-gray-800' : 'bg-white'} ring-1 ring-black ring-opacity-5`}>
+                  <div className="py-1">
+                    {languages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => changeLanguage(lang.code)}
+                        className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${i18n.language === lang.code ? (isDark ? 'bg-gray-700 text-primary-400' : 'bg-gray-100 text-primary-600') : (isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100')}`}
+                      >
+                        <span className="text-lg">{lang.flag}</span>
+                        <span>{lang.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
 
             <button
               onClick={toggleDarkMode}
@@ -103,14 +121,33 @@ const Navbar = ({ isDark, toggleDarkMode }) => {
           </div>
 
           <div className="md:hidden flex items-center">
-            <button
-              onClick={toggleLanguage}
-              className={`${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} p-2 mr-2`}
-              title={getNextLanguageName()}
-            >
-              <FiGlobe size={20} />
-              <span className="ml-1 text-sm">{i18n.language.toUpperCase()}</span>
-            </button>
+            <div className="relative mr-2">
+              <button
+                onClick={() => setIsLangOpen(!isLangOpen)}
+                className={`${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} p-2 flex items-center gap-1`}
+              >
+                <span className="text-lg">{currentLang.flag}</span>
+                <span className="text-sm">{currentLang.code.toUpperCase()}</span>
+                <FiChevronDown size={16} />
+              </button>
+
+              {isLangOpen && (
+                <div className={`absolute right-0 mt-2 w-40 rounded-md shadow-lg ${isDark ? 'bg-gray-800' : 'bg-white'} ring-1 ring-black ring-opacity-5 z-50`}>
+                  <div className="py-1">
+                    {languages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => changeLanguage(lang.code)}
+                        className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${i18n.language === lang.code ? (isDark ? 'bg-gray-700 text-primary-400' : 'bg-gray-100 text-primary-600') : (isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100')}`}
+                      >
+                        <span className="text-lg">{lang.flag}</span>
+                        <span>{lang.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
             <button
               onClick={toggleDarkMode}
               className={`${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} p-2 mr-2`}
