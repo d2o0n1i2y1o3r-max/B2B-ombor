@@ -17,7 +17,18 @@ const Navbar = ({ isDark, toggleDarkMode }) => {
   };
 
   const toggleLanguage = () => {
-    i18n.changeLanguage(i18n.language === 'uz' ? 'ru' : 'uz');
+    const languages = ['uz', 'ru', 'en'];
+    const currentIndex = languages.indexOf(i18n.language);
+    const nextIndex = (currentIndex + 1) % languages.length;
+    i18n.changeLanguage(languages[nextIndex]);
+  };
+
+  const getNextLanguageName = () => {
+    const languages = ['uz', 'ru', 'en'];
+    const names = { uz: 'Русский', ru: 'English', en: 'O\'zbek' };
+    const currentIndex = languages.indexOf(i18n.language);
+    const nextIndex = (currentIndex + 1) % languages.length;
+    return names[languages[nextIndex]];
   };
 
   return (
@@ -44,7 +55,7 @@ const Navbar = ({ isDark, toggleDarkMode }) => {
             <button
               onClick={toggleLanguage}
               className={`${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} p-2 rounded-md`}
-              title={i18n.language === 'uz' ? 'Русский' : 'O\'zbek'}
+              title={getNextLanguageName()}
             >
               <FiGlobe size={20} />
               <span className="ml-1 text-sm">{i18n.language.toUpperCase()}</span>
@@ -95,7 +106,7 @@ const Navbar = ({ isDark, toggleDarkMode }) => {
             <button
               onClick={toggleLanguage}
               className={`${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} p-2 mr-2`}
-              title={i18n.language === 'uz' ? 'Русский' : 'O\'zbek'}
+              title={getNextLanguageName()}
             >
               <FiGlobe size={20} />
               <span className="ml-1 text-sm">{i18n.language.toUpperCase()}</span>
