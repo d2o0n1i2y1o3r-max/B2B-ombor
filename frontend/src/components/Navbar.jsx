@@ -60,7 +60,7 @@ const Navbar = ({ isDark, toggleDarkMode }) => {
             {isAuthenticated ? (
               <>
                 <Link
-                  to={user?.role === 'landlord' ? '/dashboard/landlord' : '/dashboard/tenant'}
+                  to={user?.role === 'admin' ? '/dashboard/admin' : user?.role === 'landlord' ? '/dashboard/landlord' : '/dashboard/tenant'}
                   className={`${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} px-3 py-2 rounded-md`}
                 >
                   {t('nav.dashboard')}
@@ -132,7 +132,7 @@ const Navbar = ({ isDark, toggleDarkMode }) => {
             {isAuthenticated ? (
               <>
                 <Link
-                  to={user?.role === 'landlord' ? '/dashboard/landlord' : '/dashboard/tenant'}
+                  to={user?.role === 'admin' ? '/dashboard/admin' : user?.role === 'landlord' ? '/dashboard/landlord' : '/dashboard/tenant'}
                   className={`block ${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} px-3 py-2`}
                 >
                   {t('nav.dashboard')}

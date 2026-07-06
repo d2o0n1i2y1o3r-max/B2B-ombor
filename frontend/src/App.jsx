@@ -10,6 +10,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import LandlordDashboard from './pages/Dashboard/LandlordDashboard';
 import TenantDashboard from './pages/Dashboard/TenantDashboard';
+import AdminDashboard from './pages/Dashboard/AdminDashboard';
 import AddWarehouse from './pages/Dashboard/AddWarehouse';
 
 function App() {
@@ -31,7 +32,7 @@ function App() {
   const toggleDarkMode = () => setIsDark(!isDark);
 
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true }}>
       <div className={`min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
         <Navbar isDark={isDark} toggleDarkMode={toggleDarkMode} />
         <Routes>
@@ -54,6 +55,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['tenant', 'admin']}>
                 <TenantDashboard isDark={isDark} />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/dashboard/admin" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminDashboard isDark={isDark} />
               </ProtectedRoute>
             } 
           />
