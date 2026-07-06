@@ -23,7 +23,7 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app);
 
-// Initialize reCAPTCHA verifier for phone auth
+// Initialize reCAPTCHA verifier for email link auth
 let recaptchaVerifier = null;
 
 export const getRecaptchaVerifier = (containerId) => {

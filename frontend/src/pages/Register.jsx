@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth, db, getRecaptchaVerifier, clearRecaptchaVerifier } from '../firebase';
-import { signInWithPhoneNumber } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import useAuthStore from '../store/authStore';
 import { useTranslation } from 'react-i18next';
 
@@ -13,9 +13,7 @@ const Register = ({ isDark }) => {
     email: '',
     phone: '',
   });
-  const [verificationCode, setVerificationCode] = useState('');
-  const [step, setStep] = useState(1); // 1: input info, 2: verify code
-  const [confirmationResult, setConfirmationResult] = useState(null);
+  const [step, setStep] = useState(1); // 1: input info, 2: check email
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const setUser = useAuthStore((state) => state.setUser);
@@ -25,18 +23,7 @@ const Register = ({ isDark }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const formatPhoneNumber = (phone) => {
-    // Format phone to +998XXXXXXXXX format
-    const cleaned = phone.replace(/\D/g, '');
-    if (cleaned.startsWith('998')) {
-      return '+' + cleaned;
-    } else if (cleaned.startsWith('0')) {
-      return '+998' + cleaned.slice(1);
-    }
-    return '+998' + cleaned;
-  };
-
-  const handleSendCode = async (e) => {
+  const handleSendLink = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -48,14 +35,19 @@ const Register = ({ isDark }) => {
     setLoading(true);
 
     try {
-      const formattedPhone = formatPhoneNumber(formData.phone);
-      const verifier = getRecaptchaVerifier('recaptcha-container');
+      const actionCodeSettings = {
+        url: window.location.origin + '/register',
+        handleCodeInApp: true,
+      };
+
+      await sendSignInLinkToEmail(auth, formData.email, actionCodeSettings);
       
-      const result = await signInWithPhoneNumber(auth, formattedPhone, verifier);
-      setConfirmationResult(result);
+      // Save email for verification
+      window.localStorage.setItem('emailForSignIn', formData.email);
+      
       setStep(2);
     } catch (err) {
-      console.error('SMS yuborishda xatolik:', err);
+      console.error('Email link yuborishda xatolik:', err);
       setError(t('auth.smsError'));
       clearRecaptchaVerifier();
     } finally {
@@ -63,48 +55,58 @@ const Register = ({ isDark }) => {
     }
   };
 
-  const handleVerifyCode = async (e) => {
-    e.preventDefault();
-    setError('');
+  // Check if user came from email link on mount
+  React.useEffect(() => {
+    if (isSignInWithEmailLink(auth, window.location.href)) {
+      const email = window.localStorage.getItem('emailForSignIn');
+      
+      if (!email) {
+        setError('Email topilmadi. Iltimos, qaytadan ro\'yxatdan o\'ting.');
+        return;
+      }
 
-    if (!verificationCode) {
-      setError(t('auth.enterCode'));
-      return;
+      setLoading(true);
+
+      signInWithEmailLink(auth, email, window.location.href)
+        .then(async (result) => {
+          window.localStorage.removeItem('emailForSignIn');
+          const user = result.user;
+
+          // Check if user already exists
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          
+          if (!userDoc.exists()) {
+            // Create new user document
+            await setDoc(doc(db, 'users', user.uid), {
+              name: formData.name || user.displayName || 'Foydalanuvchi',
+              email: user.email,
+              phone: formData.phone || '',
+              role: 'tenant',
+              subscriptionTier: 'free',
+              subscriptionExpiresAt: null,
+              createdAt: new Date(),
+            });
+          }
+
+          setUser({
+            uid: user.uid,
+            email: user.email,
+            name: userDoc.exists() ? userDoc.data().name : formData.name || user.displayName,
+            role: userDoc.exists() ? userDoc.data().role : 'tenant',
+            subscriptionTier: 'free',
+          });
+
+          navigate('/');
+        })
+        .catch((err) => {
+          console.error('Email link bilan kirishda xatolik:', err);
+          setError('Xatolik yuz berdi. Iltimos, qaytadan urinib ko\'ring.');
+        })
+        .finally(() => {
+          setLoading(false);
+        });
     }
-
-    setLoading(true);
-
-    try {
-      const result = await confirmationResult.confirm(verificationCode);
-      const user = result.user;
-
-      // Firestore'da foydalanuvchi ma'lumotlarini saqlash
-      await setDoc(doc(db, 'users', user.uid), {
-        name: formData.name,
-        email: formData.email,
-        phone: formatPhoneNumber(formData.phone),
-        role: 'tenant',
-        subscriptionTier: 'free',
-        subscriptionExpiresAt: null,
-        createdAt: new Date(),
-      });
-
-      setUser({
-        uid: user.uid,
-        email: user.email || formData.email,
-        name: formData.name,
-        role: 'tenant',
-        subscriptionTier: 'free',
-      });
-
-      navigate('/');
-    } catch (err) {
-      console.error('Kod tasdiqlashda xatolik:', err);
-      setError(t('auth.codeError'));
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, []);
 
   return (
     <div className={`min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
@@ -114,18 +116,18 @@ const Register = ({ isDark }) => {
             {step === 1 ? t('auth.registerStep1') : t('auth.registerStep2')}
           </h2>
           <p className={`mt-2 text-center text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            {step === 1 ? t('auth.registerSubtitle') : t('auth.codeSent', { phone: formatPhoneNumber(formData.phone) })}
+            {step === 1 ? t('auth.registerSubtitle') : t('auth.codeSent', { phone: formData.email })}
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={step === 1 ? handleSendCode : handleVerifyCode}>
-          {error && (
-            <div className={`border px-4 py-3 rounded ${isDark ? 'bg-red-900/20 border-red-700 text-red-300' : 'bg-red-100 border-red-400 text-red-700'}`}>
-              {error}
-            </div>
-          )}
+        {error && (
+          <div className={`border px-4 py-3 rounded ${isDark ? 'bg-red-900/20 border-red-700 text-red-300' : 'bg-red-100 border-red-400 text-red-700'}`}>
+            {error}
+          </div>
+        )}
 
-          {step === 1 ? (
+        {step === 1 ? (
+          <form className="mt-8 space-y-6" onSubmit={handleSendLink}>
             <div className="space-y-4">
               <div>
                 <input
@@ -163,57 +165,49 @@ const Register = ({ isDark }) => {
                 />
               </div>
             </div>
-          ) : (
-            <div className="space-y-4">
-              <div>
-                <input
-                  type="text"
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
-                  className={`appearance-none relative block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm text-center text-2xl tracking-widest ${isDark ? 'bg-gray-800 border-gray-600 placeholder-gray-500 text-white' : 'border-gray-300 placeholder-gray-500 text-gray-900'}`}
-                  placeholder="XXXXXX"
-                  maxLength={6}
-                />
-              </div>
+
+            <div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
+              >
+                {loading ? t('auth.loading') : t('auth.sendSms')}
+              </button>
             </div>
-          )}
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
-            >
-              {loading ? t('auth.loading') : step === 1 ? t('auth.sendSms') : t('auth.verifyCode')}
-            </button>
-          </div>
+            <div className="text-center">
+              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                {t('auth.hasAccount')}{' '}
+                <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
+                  {t('nav.login')}
+                </Link>
+              </p>
+            </div>
+          </form>
+        ) : (
+          <div className="mt-8 space-y-6">
+            <div className={`text-center ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              <p className="text-lg mb-4">
+                {t('auth.codeSent', { phone: formData.email })}
+              </p>
+              <p className="text-sm">
+                Emailingizni tekshiring va havolani bosing. Keyin sahifa avtomatik ravishda yangilanadi.
+              </p>
+            </div>
 
-          {step === 2 && (
             <button
               type="button"
               onClick={() => {
                 setStep(1);
-                setVerificationCode('');
                 setError('');
               }}
               className={`w-full py-2 px-4 border rounded-md text-sm font-medium ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
             >
               {t('auth.back')}
             </button>
-          )}
-
-          <div className="text-center">
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-              {t('auth.hasAccount')}{' '}
-              <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
-                {t('nav.login')}
-              </Link>
-            </p>
           </div>
-        </form>
-        
-        {/* Invisible reCAPTCHA container */}
-        <div id="recaptcha-container"></div>
+        )}
       </div>
     </div>
   );
