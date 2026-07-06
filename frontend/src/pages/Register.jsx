@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { auth, db, getRecaptchaVerifier, clearRecaptchaVerifier } from '../firebase';
-import { sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 import useAuthStore from '../store/authStore';
 import { useTranslation } from 'react-i18next';
+import emailjs from 'emailjs-com';
 
 const Register = ({ isDark }) => {
   const { t } = useTranslation();
@@ -13,7 +14,9 @@ const Register = ({ isDark }) => {
     email: '',
     phone: '',
   });
-  const [step, setStep] = useState(1); // 1: input info, 2: check email
+  const [verificationCode, setVerificationCode] = useState('');
+  const [generatedCode, setGeneratedCode] = useState('');
+  const [step, setStep] = useState(1); // 1: input info, 2: verify code
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const setUser = useAuthStore((state) => state.setUser);
@@ -23,7 +26,11 @@ const Register = ({ isDark }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSendLink = async (e) => {
+  const generateCode = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  };
+
+  const handleSendCode = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -35,78 +42,87 @@ const Register = ({ isDark }) => {
     setLoading(true);
 
     try {
-      const actionCodeSettings = {
-        url: window.location.origin + '/register',
-        handleCodeInApp: true,
+      const code = generateCode();
+      setGeneratedCode(code);
+
+      // Send email using EmailJS
+      const templateParams = {
+        to_email: formData.email,
+        to_name: formData.name,
+        verification_code: code,
       };
 
-      await sendSignInLinkToEmail(auth, formData.email, actionCodeSettings);
-      
-      // Save email for verification
-      window.localStorage.setItem('emailForSignIn', formData.email);
-      
+      await emailjs.send(
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+        templateParams,
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+      );
+
       setStep(2);
     } catch (err) {
-      console.error('Email link yuborishda xatolik:', err);
+      console.error('Email yuborishda xatolik:', err);
       setError(t('auth.smsError'));
-      clearRecaptchaVerifier();
     } finally {
       setLoading(false);
     }
   };
 
-  // Check if user came from email link on mount
-  React.useEffect(() => {
-    if (isSignInWithEmailLink(auth, window.location.href)) {
-      const email = window.localStorage.getItem('emailForSignIn');
-      
-      if (!email) {
-        setError('Email topilmadi. Iltimos, qaytadan ro\'yxatdan o\'ting.');
-        return;
-      }
+  const handleVerifyCode = async (e) => {
+    e.preventDefault();
+    setError('');
 
-      setLoading(true);
-
-      signInWithEmailLink(auth, email, window.location.href)
-        .then(async (result) => {
-          window.localStorage.removeItem('emailForSignIn');
-          const user = result.user;
-
-          // Check if user already exists
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
-          
-          if (!userDoc.exists()) {
-            // Create new user document
-            await setDoc(doc(db, 'users', user.uid), {
-              name: formData.name || user.displayName || 'Foydalanuvchi',
-              email: user.email,
-              phone: formData.phone || '',
-              role: 'tenant',
-              subscriptionTier: 'free',
-              subscriptionExpiresAt: null,
-              createdAt: new Date(),
-            });
-          }
-
-          setUser({
-            uid: user.uid,
-            email: user.email,
-            name: userDoc.exists() ? userDoc.data().name : formData.name || user.displayName,
-            role: userDoc.exists() ? userDoc.data().role : 'tenant',
-            subscriptionTier: 'free',
-          });
-
-          navigate('/');
-        })
-        .catch((err) => {
-          console.error('Email link bilan kirishda xatolik:', err);
-          setError('Xatolik yuz berdi. Iltimos, qaytadan urinib ko\'ring.');
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+    if (!verificationCode) {
+      setError(t('auth.enterCode'));
+      return;
     }
-  }, []);
+
+    if (verificationCode !== generatedCode) {
+      setError(t('auth.codeError'));
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Auto-generate a random password
+      const autoPassword = Math.random().toString(36).slice(-8);
+
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        autoPassword
+      );
+
+      const user = userCredential.user;
+
+      // Firestore'da foydalanuvchi ma'lumotlarini saqlash
+      await setDoc(doc(db, 'users', user.uid), {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        role: 'tenant',
+        subscriptionTier: 'free',
+        subscriptionExpiresAt: null,
+        createdAt: new Date(),
+      });
+
+      setUser({
+        uid: user.uid,
+        email: user.email,
+        name: formData.name,
+        role: 'tenant',
+        subscriptionTier: 'free',
+      });
+
+      navigate('/');
+    } catch (err) {
+      console.error('Ro\'yxatdan o\'tishda xatolik:', err);
+      setError(t('auth.registerError'));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className={`min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
@@ -127,7 +143,7 @@ const Register = ({ isDark }) => {
         )}
 
         {step === 1 ? (
-          <form className="mt-8 space-y-6" onSubmit={handleSendLink}>
+          <form className="mt-8 space-y-6" onSubmit={handleSendCode}>
             <div className="space-y-4">
               <div>
                 <input
@@ -186,27 +202,42 @@ const Register = ({ isDark }) => {
             </div>
           </form>
         ) : (
-          <div className="mt-8 space-y-6">
-            <div className={`text-center ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-              <p className="text-lg mb-4">
-                {t('auth.codeSent', { phone: formData.email })}
-              </p>
-              <p className="text-sm">
-                Emailingizni tekshiring va havolani bosing. Keyin sahifa avtomatik ravishda yangilanadi.
-              </p>
+          <form className="mt-8 space-y-6" onSubmit={handleVerifyCode}>
+            <div className="space-y-4">
+              <div>
+                <input
+                  type="text"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  className={`appearance-none relative block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm text-center text-2xl tracking-widest ${isDark ? 'bg-gray-800 border-gray-600 placeholder-gray-500 text-white' : 'border-gray-300 placeholder-gray-500 text-gray-900'}`}
+                  placeholder="XXXXXX"
+                  maxLength={6}
+                />
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
+              >
+                {loading ? t('auth.loading') : t('auth.verifyCode')}
+              </button>
             </div>
 
             <button
               type="button"
               onClick={() => {
                 setStep(1);
+                setVerificationCode('');
                 setError('');
               }}
               className={`w-full py-2 px-4 border rounded-md text-sm font-medium ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
             >
               {t('auth.back')}
             </button>
-          </div>
+          </form>
         )}
       </div>
     </div>
