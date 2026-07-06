@@ -1,7 +1,7 @@
 import React from 'react';
 import { FiCheck, FiX } from 'react-icons/fi';
 
-const Pricing = () => {
+const Pricing = ({ isDark }) => {
   const plans = [
     {
       name: 'Bepul',
@@ -67,8 +67,8 @@ const Pricing = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4">Tariflar</h1>
-        <p className="text-xl text-gray-600">
+        <h1 className={`text-4xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Tariflar</h1>
+        <p className={`text-xl ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           O'zingizga mos tarifni tanlang va biznesingizni rivojlantiring
         </p>
       </div>
@@ -78,7 +78,7 @@ const Pricing = () => {
         {plans.map((plan, index) => (
           <div
             key={index}
-            className={`bg-white rounded-lg shadow-lg p-6 ${
+            className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg p-6 ${
               plan.popular ? 'border-2 border-primary-500 relative' : ''
             }`}
           >
@@ -90,10 +90,10 @@ const Pricing = () => {
               </div>
             )}
             
-            <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
+            <h3 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{plan.name}</h3>
             <div className="mb-6">
-              <span className="text-4xl font-bold">{plan.price}</span>
-              <span className="text-gray-600"> so'm/{plan.period}</span>
+              <span className={`text-4xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{plan.price}</span>
+              <span className={isDark ? 'text-gray-400' : 'text-gray-600'}> so'm/{plan.period}</span>
             </div>
 
             <ul className="space-y-3 mb-6">
@@ -104,7 +104,7 @@ const Pricing = () => {
                   ) : (
                     <FiX className="text-red-500 mr-2" />
                   )}
-                  <span className={feature.included ? 'text-gray-700' : 'text-gray-400'}>
+                  <span className={feature.included ? (isDark ? 'text-gray-300' : 'text-gray-700') : (isDark ? 'text-gray-500' : 'text-gray-400')}>
                     {feature.text}
                   </span>
                 </li>
@@ -115,7 +115,7 @@ const Pricing = () => {
               className={`w-full py-2 rounded-lg font-semibold ${
                 plan.popular
                   ? 'bg-primary-600 text-white hover:bg-primary-700'
-                  : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                  : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
               }`}
             >
               {plan.buttonText}
@@ -125,21 +125,21 @@ const Pricing = () => {
       </div>
 
       {/* Premium Listing */}
-      <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-8 mb-16">
-        <h2 className="text-3xl font-bold mb-6 text-center">Premium E\'lon</h2>
+      <div className={`${isDark ? 'bg-gray-800' : 'bg-gradient-to-r from-yellow-50 to-orange-50'} rounded-lg p-8 mb-16`}>
+        <h2 className={`text-3xl font-bold mb-6 text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>Premium E\'lon</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {premiumFeatures.map((feature, index) => (
-            <div key={index} className="bg-white rounded-lg p-6 shadow-md">
-              <h3 className="text-2xl font-bold mb-2">{feature.title}</h3>
+            <div key={index} className={`${isDark ? 'bg-gray-700' : 'bg-white'} rounded-lg p-6 shadow-md`}>
+              <h3 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{feature.title}</h3>
               <div className="mb-4">
-                <span className="text-3xl font-bold">{feature.price}</span>
-                <span className="text-gray-600"> so'm/{feature.period}</span>
+                <span className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{feature.price}</span>
+                <span className={isDark ? 'text-gray-400' : 'text-gray-600'}> so'm/{feature.period}</span>
               </div>
               <ul className="space-y-2 mb-4">
                 {feature.features.map((item, itemIndex) => (
                   <li key={itemIndex} className="flex items-start">
                     <FiCheck className="text-green-500 mr-2 mt-1" />
-                    <span className="text-gray-700">{item}</span>
+                    <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>{item}</span>
                   </li>
                 ))}
               </ul>
@@ -153,15 +153,15 @@ const Pricing = () => {
 
       {/* Payment Methods */}
       <div className="text-center">
-        <h2 className="text-2xl font-bold mb-4">To'lov usullari</h2>
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>To'lov usullari</h2>
         <div className="flex justify-center gap-8">
           <div className="flex items-center">
             <div className="w-12 h-8 bg-blue-600 rounded mr-2"></div>
-            <span className="text-gray-700">Click.uz</span>
+            <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Click.uz</span>
           </div>
           <div className="flex items-center">
             <div className="w-12 h-8 bg-purple-600 rounded mr-2"></div>
-            <span className="text-gray-700">Payme</span>
+            <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Payme</span>
           </div>
         </div>
       </div>

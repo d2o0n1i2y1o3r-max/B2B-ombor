@@ -5,7 +5,7 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import Skeleton from '../../components/Loaders/Skeleton';
 import useAuthStore from '../../store/authStore';
 
-const TenantDashboard = () => {
+const TenantDashboard = ({ isDark }) => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuthStore();
@@ -73,22 +73,22 @@ const TenantDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-8">Tenant Dashboard</h1>
+      <h1 className={`text-3xl font-bold mb-8 ${isDark ? 'text-white' : 'text-gray-900'}`}>Tenant Dashboard</h1>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-600">Jami so'rovlar</h3>
+        <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow p-6`}>
+          <h3 className={`text-lg font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Jami so'rovlar</h3>
           <p className="text-3xl font-bold text-primary-600">{bookings.length}</p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-600">Kutilmoqda</h3>
+        <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow p-6`}>
+          <h3 className={`text-lg font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Kutilmoqda</h3>
           <p className="text-3xl font-bold text-yellow-600">
             {bookings.filter(b => b.status === 'pending').length}
           </p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-600">Qabul qilingan</h3>
+        <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow p-6`}>
+          <h3 className={`text-lg font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Qabul qilingan</h3>
           <p className="text-3xl font-bold text-green-600">
             {bookings.filter(b => b.status === 'accepted').length}
           </p>
@@ -97,10 +97,10 @@ const TenantDashboard = () => {
 
       {/* Bookings */}
       <div>
-        <h2 className="text-2xl font-bold mb-4">Mening so'rovlari</h2>
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Mening so'rovlari</h2>
         {bookings.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
-            <p className="text-gray-600 mb-4">Hali so'rovlar yo'q</p>
+          <div className={`text-center py-12 rounded-lg shadow ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+            <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Hali so'rovlar yo'q</p>
             <a
               href="/listings"
               className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700"
@@ -111,11 +111,11 @@ const TenantDashboard = () => {
         ) : (
           <div className="space-y-4">
             {bookings.map((booking) => (
-              <div key={booking.id} className="bg-white rounded-lg shadow p-6">
+              <div key={booking.id} className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow p-6`}>
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-xl font-semibold">{booking.warehouseTitle}</h3>
-                    <p className="text-gray-600">{booking.warehouseAddress}</p>
+                    <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{booking.warehouseTitle}</h3>
+                    <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>{booking.warehouseAddress}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     {getStatusIcon(booking.status)}
@@ -131,21 +131,21 @@ const TenantDashboard = () => {
 
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <p className="text-sm text-gray-600">Ijaraga olish muddati</p>
-                    <p className="font-semibold">{booking.requestedPeriod} oy</p>
+                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Ijaraga olish muddati</p>
+                    <p className={`font-semibold ${isDark ? 'text-white' : ''}`}>{booking.requestedPeriod} oy</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Yuborilgan sana</p>
-                    <p className="font-semibold">
+                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Yuborilgan sana</p>
+                    <p className={`font-semibold ${isDark ? 'text-white' : ''}`}>
                       {booking.createdAt?.toDate?.()?.toLocaleDateString('uz-UZ') || '-'}
                     </p>
                   </div>
                 </div>
 
                 {booking.message && (
-                  <div className="bg-gray-50 p-3 rounded mb-4">
-                    <p className="text-sm text-gray-600">Xabar:</p>
-                    <p className="text-gray-800">{booking.message}</p>
+                  <div className={`${isDark ? 'bg-gray-700' : 'bg-gray-50'} p-3 rounded mb-4`}>
+                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Xabar:</p>
+                    <p className={isDark ? 'text-gray-300' : 'text-gray-800'}>{booking.message}</p>
                   </div>
                 )}
 

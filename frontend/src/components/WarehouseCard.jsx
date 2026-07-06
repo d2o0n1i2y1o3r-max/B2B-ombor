@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { FiMapPin, FiDollarSign, FiBox, FiStar } from 'react-icons/fi';
 
-const WarehouseCard = ({ warehouse }) => {
+const WarehouseCard = ({ warehouse, isDark }) => {
   const {
     id,
     title,
@@ -19,7 +19,7 @@ const WarehouseCard = ({ warehouse }) => {
 
   return (
     <Link to={`/warehouse/${id}`} className="block">
-      <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+      <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300`}>
         <div className="relative">
           <img
             src={imageUrl}
@@ -43,25 +43,25 @@ const WarehouseCard = ({ warehouse }) => {
         </div>
 
         <div className="p-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-2 truncate">{title}</h3>
+          <h3 className={`text-lg font-semibold mb-2 truncate ${isDark ? 'text-white' : 'text-gray-800'}`}>{title}</h3>
           
-          <div className="flex items-center text-gray-600 text-sm mb-2">
+          <div className={`flex items-center text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             <FiMapPin className="mr-1" />
             <span className="truncate">{location.region}, {location.address}</span>
           </div>
 
-          <div className="flex items-center text-gray-600 text-sm mb-2">
+          <div className={`flex items-center text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             <FiBox className="mr-1" />
             <span>{sizeSqm} m²</span>
           </div>
 
-          <div className="flex items-center text-gray-600 text-sm mb-2">
+          <div className={`flex items-center text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             <FiDollarSign className="mr-1" />
             <span>{pricePerSqm.toLocaleString()} so'm/m²/oy</span>
           </div>
 
-          <div className="mt-3 pt-3 border-t border-gray-200">
-            <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+          <div className={`mt-3 pt-3 border-t ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+            <span className={`inline-block text-xs px-2 py-1 rounded ${isDark ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'}`}>
               {category}
             </span>
           </div>

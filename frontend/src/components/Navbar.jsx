@@ -1,68 +1,91 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiMenu, FiX, FiUser, FiLogOut } from 'react-icons/fi';
+import { FiMenu, FiX, FiUser, FiLogOut, FiSun, FiMoon, FiGlobe } from 'react-icons/fi';
 import useAuthStore from '../store/authStore';
+import { useTranslation } from 'react-i18next';
+import Logo from './Logo';
 
-const Navbar = () => {
+const Navbar = ({ isDark, toggleDarkMode }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const { user, isAuthenticated, logout } = useAuthStore();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
 
+  const toggleLanguage = () => {
+    i18n.changeLanguage(i18n.language === 'uz' ? 'ru' : 'uz');
+  };
+
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
+    <nav className={`sticky top-0 z-50 shadow-md ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="text-2xl font-bold text-primary-600">SkladBor</span>
+              <Logo isDark={isDark} showText={true} size="md" />
             </Link>
           </div>
 
           <div className="hidden md:flex items-center space-x-4">
-            <Link to="/" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md">
-              Bosh sahifa
+            <Link to="/" className={`${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} px-3 py-2 rounded-md`}>
+              {t('nav.home')}
             </Link>
-            <Link to="/listings" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md">
-              Omborlar
+            <Link to="/listings" className={`${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} px-3 py-2 rounded-md`}>
+              {t('nav.listings')}
             </Link>
-            <Link to="/pricing" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md">
-              Narxlar
+            <Link to="/about" className={`${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} px-3 py-2 rounded-md`}>
+              {t('nav.about')}
             </Link>
+
+            <button
+              onClick={toggleLanguage}
+              className={`${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} p-2 rounded-md`}
+              title={i18n.language === 'uz' ? 'Русский' : 'O\'zbek'}
+            >
+              <FiGlobe size={20} />
+              <span className="ml-1 text-sm">{i18n.language.toUpperCase()}</span>
+            </button>
+
+            <button
+              onClick={toggleDarkMode}
+              className={`${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} p-2 rounded-md`}
+            >
+              {isDark ? <FiSun size={20} /> : <FiMoon size={20} />}
+            </button>
 
             {isAuthenticated ? (
               <>
                 <Link
                   to={user?.role === 'landlord' ? '/dashboard/landlord' : '/dashboard/tenant'}
-                  className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md"
+                  className={`${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} px-3 py-2 rounded-md`}
                 >
-                  Dashboard
+                  {t('nav.dashboard')}
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2 text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md"
+                  className={`flex items-center gap-2 ${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} px-3 py-2 rounded-md`}
                 >
                   <FiLogOut />
-                  Chiqish
+                  {t('nav.logout')}
                 </button>
               </>
             ) : (
               <>
                 <Link
                   to="/login"
-                  className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md"
+                  className={`${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} px-3 py-2 rounded-md`}
                 >
-                  Kirish
+                  {t('nav.login')}
                 </Link>
                 <Link
                   to="/register"
                   className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700"
                 >
-                  Ro'yxatdan o'tish
+                  {t('nav.register')}
                 </Link>
               </>
             )}
@@ -70,8 +93,22 @@ const Navbar = () => {
 
           <div className="md:hidden flex items-center">
             <button
+              onClick={toggleLanguage}
+              className={`${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} p-2 mr-2`}
+              title={i18n.language === 'uz' ? 'Русский' : 'O\'zbek'}
+            >
+              <FiGlobe size={20} />
+              <span className="ml-1 text-sm">{i18n.language.toUpperCase()}</span>
+            </button>
+            <button
+              onClick={toggleDarkMode}
+              className={`${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} p-2 mr-2`}
+            >
+              {isDark ? <FiSun size={20} /> : <FiMoon size={20} />}
+            </button>
+            <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-gray-700 hover:text-primary-600 p-2"
+              className={`${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} p-2`}
             >
               {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
             </button>
@@ -80,40 +117,40 @@ const Navbar = () => {
       </div>
 
       {isOpen && (
-        <div className="md:hidden">
+        <div className={`md:hidden ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <Link to="/" className="block text-gray-700 hover:text-primary-600 px-3 py-2">
-              Bosh sahifa
+            <Link to="/" className={`block ${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} px-3 py-2`}>
+              {t('nav.home')}
             </Link>
-            <Link to="/listings" className="block text-gray-700 hover:text-primary-600 px-3 py-2">
-              Omborlar
+            <Link to="/listings" className={`block ${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} px-3 py-2`}>
+              {t('nav.listings')}
             </Link>
-            <Link to="/pricing" className="block text-gray-700 hover:text-primary-600 px-3 py-2">
-              Narxlar
+            <Link to="/about" className={`block ${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} px-3 py-2`}>
+              {t('nav.about')}
             </Link>
 
             {isAuthenticated ? (
               <>
                 <Link
                   to={user?.role === 'landlord' ? '/dashboard/landlord' : '/dashboard/tenant'}
-                  className="block text-gray-700 hover:text-primary-600 px-3 py-2"
+                  className={`block ${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} px-3 py-2`}
                 >
-                  Dashboard
+                  {t('nav.dashboard')}
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="block w-full text-left text-gray-700 hover:text-primary-600 px-3 py-2"
+                  className={`block w-full text-left ${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} px-3 py-2`}
                 >
-                  Chiqish
+                  {t('nav.logout')}
                 </button>
               </>
             ) : (
               <>
-                <Link to="/login" className="block text-gray-700 hover:text-primary-600 px-3 py-2">
-                  Kirish
+                <Link to="/login" className={`block ${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} px-3 py-2`}>
+                  {t('nav.login')}
                 </Link>
-                <Link to="/register" className="block text-gray-700 hover:text-primary-600 px-3 py-2">
-                  Ro'yxatdan o'tish
+                <Link to="/register" className={`block ${isDark ? 'text-gray-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'} px-3 py-2`}>
+                  {t('nav.register')}
                 </Link>
               </>
             )}

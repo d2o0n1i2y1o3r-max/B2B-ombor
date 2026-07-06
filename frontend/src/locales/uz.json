@@ -2,7 +2,7 @@
   "nav": {
     "home": "Bosh sahifa",
     "listings": "Omborlar",
-    "pricing": "Narxlar",
+    "about": "Biz haqimizda",
     "dashboard": "Dashboard",
     "login": "Kirish",
     "register": "Ro'yxatdan o'tish",
@@ -106,7 +106,7 @@
     "premiumListing": "Premium E'lon",
     "premiumFeatures": {
       "topResults": "Qidiruv natijalarida birinchi o'rinlarda chiqadi",
-      "topBadge": '"TOP" belgisi bilan ajralib turadi',
+      "topBadge": "'TOP' belgisi bilan ajralib turadi",
       "moreImages": "3 marta ko'proq rasm yuklash imkoniyati",
       "moreViews": "Ko'proq ko'rish va so'rov olish"
     },
@@ -148,7 +148,7 @@
     "categoryAmenities": "Kategoriya va qulayliklar",
     "images": "Rasmlar",
     "uploadImage": "Rasm yuklash",
-    "title": "Sarlavha",
+    "warehouseTitle": "Sarlavha",
     "description": "Tavsif",
     "region": "Viloyat",
     "address": "Manzil",

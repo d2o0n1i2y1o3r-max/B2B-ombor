@@ -7,7 +7,7 @@ import { db } from '../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import useFilterStore from '../store/filterStore';
 
-const Listings = () => {
+const Listings = ({ isDark }) => {
   const [warehouses, setWarehouses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showMap, setShowMap] = useState(false);
@@ -39,6 +39,10 @@ const Listings = () => {
         ...doc.data()
       }));
 
+      console.log('Fetched warehouses:', warehousesData);
+      console.log('Query snapshot size:', querySnapshot.size);
+      console.log('Current filters:', filters);
+
       // Client-side filter for price and size ranges
       let filtered = warehousesData;
       if (filters.minPrice) {
@@ -54,13 +58,6 @@ const Listings = () => {
         filtered = filtered.filter(w => w.sizeSqm <= Number(filters.maxSize));
       }
 
-      // Premium omborlarni tepaga ko'tarish
-      filtered.sort((a, b) => {
-        if (a.isPremium && !b.isPremium) return -1;
-        if (!a.isPremium && b.isPremium) return 1;
-        return 0;
-      });
-
       setWarehouses(filtered);
     } catch (error) {
       console.error('Error fetching warehouses:', error);
@@ -74,13 +71,13 @@ const Listings = () => {
       <div className="flex gap-8">
         {/* Sidebar */}
         <div className="hidden lg:block w-1/4">
-          <FilterSidebar />
+          <FilterSidebar isDark={isDark} />
         </div>
 
         {/* Main Content */}
         <div className="flex-1">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold">Omborlar</h1>
+            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Omborlar</h1>
             <button
               onClick={() => setShowMap(!showMap)}
               className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700"
@@ -92,7 +89,7 @@ const Listings = () => {
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, index) => (
-                <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div key={index} className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md overflow-hidden`}>
                   <Skeleton className="w-full h-48" />
                   <div className="p-4">
                     <Skeleton className="h-6 w-3/4 mb-2" />
@@ -103,17 +100,17 @@ const Listings = () => {
               ))}
             </div>
           ) : showMap ? (
-            <MapView warehouses={warehouses} />
+            <MapView warehouses={warehouses} isDark={isDark} />
           ) : (
             <>
               {warehouses.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-gray-600 text-lg">Omborlar topilmadi</p>
+                  <p className={`text-lg ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Omborlar topilmadi</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {warehouses.map((warehouse) => (
-                    <WarehouseCard key={warehouse.id} warehouse={warehouse} />
+                    <WarehouseCard key={warehouse.id} warehouse={warehouse} isDark={isDark} />
                   ))}
                 </div>
               )}

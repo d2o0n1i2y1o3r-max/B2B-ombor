@@ -7,7 +7,7 @@ import WarehouseCard from '../../components/WarehouseCard';
 import Skeleton from '../../components/Loaders/Skeleton';
 import useAuthStore from '../../store/authStore';
 
-const LandlordDashboard = () => {
+const LandlordDashboard = ({ isDark }) => {
   const [warehouses, setWarehouses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState([]);
@@ -83,7 +83,7 @@ const LandlordDashboard = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Landlord Dashboard</h1>
+        <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Landlord Dashboard</h1>
         <Link
           to="/dashboard/add-warehouse"
           className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 flex items-center gap-2"
@@ -95,18 +95,18 @@ const LandlordDashboard = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-600">Jami omborlar</h3>
+        <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow p-6`}>
+          <h3 className={`text-lg font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Jami omborlar</h3>
           <p className="text-3xl font-bold text-primary-600">{warehouses.length}</p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-600">Kutilmoqda so'rovlar</h3>
+        <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow p-6`}>
+          <h3 className={`text-lg font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Kutilmoqda so'rovlar</h3>
           <p className="text-3xl font-bold text-yellow-600">
             {bookings.filter(b => b.status === 'pending').length}
           </p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-600">Qabul qilingan</h3>
+        <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow p-6`}>
+          <h3 className={`text-lg font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Qabul qilingan</h3>
           <p className="text-3xl font-bold text-green-600">
             {bookings.filter(b => b.status === 'accepted').length}
           </p>
@@ -115,10 +115,10 @@ const LandlordDashboard = () => {
 
       {/* Warehouses */}
       <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-4">Mening omborlarim</h2>
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Mening omborlarim</h2>
         {warehouses.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
-            <p className="text-gray-600 mb-4">Hali ombor qo'shilmagan</p>
+          <div className={`text-center py-12 rounded-lg shadow ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+            <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Hali ombor qo'shilmagan</p>
             <Link
               to="/dashboard/add-warehouse"
               className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700"
@@ -130,7 +130,7 @@ const LandlordDashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {warehouses.map((warehouse) => (
               <div key={warehouse.id} className="relative">
-                <WarehouseCard warehouse={warehouse} />
+                <WarehouseCard warehouse={warehouse} isDark={isDark} />
                 <div className="flex gap-2 mt-2">
                   <Link
                     to={`/dashboard/edit-warehouse/${warehouse.id}`}
@@ -155,43 +155,43 @@ const LandlordDashboard = () => {
 
       {/* Bookings */}
       <div>
-        <h2 className="text-2xl font-bold mb-4">So'rovlar</h2>
+        <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>So'rovlar</h2>
         {bookings.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
-            <p className="text-gray-600">Hali so'rovlar yo'q</p>
+          <div className={`text-center py-12 rounded-lg shadow ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+            <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>Hali so'rovlar yo'q</p>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow overflow-hidden`}>
             <table className="min-w-full">
-              <thead className="bg-gray-50">
+              <thead className={isDark ? 'bg-gray-700' : 'bg-gray-50'}>
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                     Ombor
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                     Ijarachi
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                     Muddat
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                     Amallar
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'}`}>
                 {bookings.map((booking) => (
                   <tr key={booking.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className={`px-6 py-4 whitespace-nowrap ${isDark ? 'text-gray-300' : ''}`}>
                       {booking.warehouseTitle}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className={`px-6 py-4 whitespace-nowrap ${isDark ? 'text-gray-300' : ''}`}>
                       {booking.tenantName}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className={`px-6 py-4 whitespace-nowrap ${isDark ? 'text-gray-300' : ''}`}>
                       {booking.requestedPeriod} oy
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

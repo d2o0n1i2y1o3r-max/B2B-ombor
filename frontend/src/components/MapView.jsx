@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-const MapView = ({ warehouses, onMarkerClick }) => {
+const MapView = ({ warehouses, onMarkerClick, isDark }) => {
   const [map, setMap] = useState(null);
 
   useEffect(() => {
@@ -17,6 +17,14 @@ const MapView = ({ warehouses, onMarkerClick }) => {
 
   const defaultCenter = [41.2995, 69.2401]; // Toshkent
 
+  const tileUrl = isDark 
+    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+  const attribution = isDark
+    ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+
   return (
     <div className="h-96 w-full rounded-lg overflow-hidden">
       <MapContainer
@@ -26,8 +34,8 @@ const MapView = ({ warehouses, onMarkerClick }) => {
         ref={setMap}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution={attribution}
+          url={tileUrl}
         />
         {warehouses.map((warehouse) => (
           <Marker

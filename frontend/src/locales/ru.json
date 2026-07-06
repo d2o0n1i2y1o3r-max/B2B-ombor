@@ -2,7 +2,7 @@
   "nav": {
     "home": "Главная",
     "listings": "Склады",
-    "pricing": "Цены",
+    "about": "О нас",
     "dashboard": "Панель",
     "login": "Войти",
     "register": "Регистрация",
@@ -106,7 +106,7 @@
     "premiumListing": "Премиум объявление",
     "premiumFeatures": {
       "topResults": "Появляется в верхних результатах поиска",
-      "topBadge": "Выделяется значком \"TOP\"",
+      "topBadge": "Выделяется значком 'TOP'",
       "moreImages": "Возможность загрузить в 3 раза больше изображений",
       "moreViews": "Больше просмотров и запросов"
     },
@@ -148,7 +148,7 @@
     "categoryAmenities": "Категория и удобства",
     "images": "Изображения",
     "uploadImage": "Загрузить изображение",
-    "title": "Заголовок",
+    "warehouseTitle": "Заголовок",
     "description": "Описание",
     "region": "Регион",
     "address": "Адрес",

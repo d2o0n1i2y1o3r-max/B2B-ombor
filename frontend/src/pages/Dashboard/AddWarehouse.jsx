@@ -7,7 +7,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import ProgressBar from '../../components/Loaders/ProgressBar';
 import useAuthStore from '../../store/authStore';
 
-const AddWarehouse = () => {
+const AddWarehouse = ({ isDark }) => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const [formData, setFormData] = useState({
@@ -144,21 +144,21 @@ const AddWarehouse = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-8">Yangi ombor qo'shish</h1>
+      <h1 className={`text-3xl font-bold mb-8 ${isDark ? 'text-white' : 'text-gray-900'}`}>Yangi ombor qo'shish</h1>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div className={`border px-4 py-3 rounded mb-4 ${isDark ? 'bg-red-900/20 border-red-700 text-red-300' : 'bg-red-100 border-red-400 text-red-700'}`}>
           {error}
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Info */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Asosiy ma'lumotlar</h2>
+        <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow p-6`}>
+          <h2 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Asosiy ma'lumotlar</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                 Sarlavha
               </label>
               <input
@@ -167,13 +167,13 @@ const AddWarehouse = () => {
                 required
                 value={formData.title}
                 onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
                 placeholder="Ombor nomi"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                 Tavsif
               </label>
               <textarea
@@ -182,7 +182,7 @@ const AddWarehouse = () => {
                 value={formData.description}
                 onChange={handleChange}
                 rows={4}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
                 placeholder="Ombor haqida batafsil ma'lumot"
               />
             </div>
@@ -190,18 +190,18 @@ const AddWarehouse = () => {
         </div>
 
         {/* Location */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Joylashuv</h2>
+        <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow p-6`}>
+          <h2 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Joylashuv</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                 Viloyat
               </label>
               <select
                 name="location.region"
                 value={formData.location.region}
                 onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
               >
                 {regions.map((region) => (
                   <option key={region} value={region}>
@@ -212,7 +212,7 @@ const AddWarehouse = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                 Manzil
               </label>
               <input
@@ -221,14 +221,14 @@ const AddWarehouse = () => {
                 required
                 value={formData.location.address}
                 onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
                 placeholder="To'liq manzil"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   Kenglik (lat)
                 </label>
                 <input
@@ -237,11 +237,11 @@ const AddWarehouse = () => {
                   name="location.lat"
                   value={formData.location.lat}
                   onChange={handleChange}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   Uzunlik (lng)
                 </label>
                 <input
@@ -250,7 +250,7 @@ const AddWarehouse = () => {
                   name="location.lng"
                   value={formData.location.lng}
                   onChange={handleChange}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
                 />
               </div>
             </div>
@@ -258,11 +258,11 @@ const AddWarehouse = () => {
         </div>
 
         {/* Size and Price */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">O'lcham va narx</h2>
+        <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow p-6`}>
+          <h2 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>O'lcham va narx</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                 Maydon (m²)
               </label>
               <input
@@ -271,13 +271,13 @@ const AddWarehouse = () => {
                 required
                 value={formData.sizeSqm}
                 onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
                 placeholder="Maydon"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                 Narx (so'm/m²/oy)
               </label>
               <input
@@ -286,13 +286,13 @@ const AddWarehouse = () => {
                 required
                 value={formData.pricePerSqm}
                 onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
                 placeholder="Narx"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                 Minimal ijaraga olish (oy)
               </label>
               <input
@@ -301,25 +301,25 @@ const AddWarehouse = () => {
                 value={formData.minRentPeriod}
                 onChange={handleChange}
                 min="1"
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
               />
             </div>
           </div>
         </div>
 
         {/* Category and Amenities */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Kategoriya va qulayliklar</h2>
+        <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow p-6`}>
+          <h2 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Kategoriya va qulayliklar</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                 Kategoriya
               </label>
               <select
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
               >
                 {categories.map((cat) => (
                   <option key={cat.value} value={cat.value}>
@@ -330,7 +330,7 @@ const AddWarehouse = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                 Qulayliklar
               </label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -351,13 +351,13 @@ const AddWarehouse = () => {
         </div>
 
         {/* Images */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Rasmlar</h2>
+        <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow p-6`}>
+          <h2 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Rasmlar</h2>
           <div className="mb-4">
-            <label className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-500">
+            <label className={`flex items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary-500 ${isDark ? 'border-gray-600 hover:border-primary-400' : 'border-gray-300'}`}>
               <div className="text-center">
-                <FiUpload className="mx-auto text-gray-400" size={32} />
-                <p className="text-sm text-gray-600 mt-2">Rasm yuklash</p>
+                <FiUpload className={`mx-auto ${isDark ? 'text-gray-500' : 'text-gray-400'}`} size={32} />
+                <p className={`text-sm mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Rasm yuklash</p>
               </div>
               <input
                 type="file"
@@ -371,7 +371,7 @@ const AddWarehouse = () => {
 
           {images.length > 0 && (
             <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">Yuklangan rasmlar:</p>
+              <p className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Yuklangan rasmlar:</p>
               <div className="grid grid-cols-3 gap-2">
                 {images.map((image, index) => (
                   <div key={index} className="relative">
@@ -395,7 +395,7 @@ const AddWarehouse = () => {
 
           {uploadProgress > 0 && uploadProgress < 100 && (
             <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">Yuklanmoqda...</p>
+              <p className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Yuklanmoqda...</p>
               <ProgressBar progress={uploadProgress} />
             </div>
           )}
@@ -406,7 +406,7 @@ const AddWarehouse = () => {
           <button
             type="button"
             onClick={() => navigate('/dashboard/landlord')}
-            className="flex-1 bg-gray-200 text-gray-800 py-3 rounded-lg hover:bg-gray-300 transition-colors"
+            className={`flex-1 py-3 rounded-lg transition-colors ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
           >
             Bekor qilish
           </button>

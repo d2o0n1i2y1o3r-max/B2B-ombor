@@ -1,20 +1,19 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { auth, db } from '../firebase';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth, db, getRecaptchaVerifier, clearRecaptchaVerifier } from '../firebase';
+import { signInWithPhoneNumber } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import useAuthStore from '../store/authStore';
 
-const Register = () => {
+const Register = ({ isDark }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    password: '',
-    confirmPassword: '',
-    role: 'tenant',
-    companyName: '',
   });
+  const [verificationCode, setVerificationCode] = useState('');
+  const [step, setStep] = useState(1); // 1: input info, 2: verify code
+  const [confirmationResult, setConfirmationResult] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const setUser = useAuthStore((state) => state.setUser);
@@ -24,38 +23,65 @@ const Register = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  const formatPhoneNumber = (phone) => {
+    // Format phone to +998XXXXXXXXX format
+    const cleaned = phone.replace(/\D/g, '');
+    if (cleaned.startsWith('998')) {
+      return '+' + cleaned;
+    } else if (cleaned.startsWith('0')) {
+      return '+998' + cleaned.slice(1);
+    }
+    return '+998' + cleaned;
+  };
+
+  const handleSendCode = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (formData.password !== formData.confirmPassword) {
-      setError('Parollar mos kelmaydi');
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setError('Parol kamida 6 ta belgidan iborat bo\'lishi kerak');
+    if (!formData.name || !formData.email || !formData.phone) {
+      setError("Barcha maydonlarni to'ldiring");
       return;
     }
 
     setLoading(true);
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        formData.email,
-        formData.password
-      );
+      const formattedPhone = formatPhoneNumber(formData.phone);
+      const verifier = getRecaptchaVerifier('recaptcha-container');
+      
+      const result = await signInWithPhoneNumber(auth, formattedPhone, verifier);
+      setConfirmationResult(result);
+      setStep(2);
+    } catch (err) {
+      console.error('SMS yuborishda xatolik:', err);
+      setError('SMS kod yuborishda xatolik yuz berdi. Telefon raqamni tekshiring.');
+      clearRecaptchaVerifier();
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      const user = userCredential.user;
+  const handleVerifyCode = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (!verificationCode) {
+      setError("SMS kodni kiriting");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const result = await confirmationResult.confirm(verificationCode);
+      const user = result.user;
 
       // Firestore'da foydalanuvchi ma'lumotlarini saqlash
       await setDoc(doc(db, 'users', user.uid), {
         name: formData.name,
         email: formData.email,
-        phone: formData.phone,
-        role: formData.role,
-        companyName: formData.companyName,
+        phone: formatPhoneNumber(formData.phone),
+        role: 'tenant',
         subscriptionTier: 'free',
         subscriptionExpiresAt: null,
         createdAt: new Date(),
@@ -63,125 +89,92 @@ const Register = () => {
 
       setUser({
         uid: user.uid,
-        email: user.email,
+        email: user.email || formData.email,
         name: formData.name,
-        role: formData.role,
+        role: 'tenant',
         subscriptionTier: 'free',
       });
 
       navigate('/');
     } catch (err) {
-      setError('Ro\'yxatdan o\'tishda xatolik yuz berdi');
+      console.error('Kod tasdiqlashda xatolik:', err);
+      setError('SMS kod noto\'g\'ri. Qaytadan urinib ko\'ring.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className={`min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Ro'yxatdan o'tish
+          <h2 className={`mt-6 text-center text-3xl font-extrabold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            {step === 1 ? 'Ro\'yxatdan o\'tish' : 'SMS kodni tasdiqlang'}
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Ombor ijarasi marketplace platformasi
+          <p className={`mt-2 text-center text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+            {step === 1 ? 'Ombor ijarasi marketplace platformasi' : `Kod ${formatPhoneNumber(formData.phone)} raqamiga yuborildi`}
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={step === 1 ? handleSendCode : handleVerifyCode}>
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <div className={`border px-4 py-3 rounded ${isDark ? 'bg-red-900/20 border-red-700 text-red-300' : 'bg-red-100 border-red-400 text-red-700'}`}>
               {error}
             </div>
           )}
 
-          <div className="space-y-4">
-            <div>
-              <input
-                type="text"
-                name="name"
-                required
-                value={formData.name}
-                onChange={handleChange}
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                placeholder="Ism-familiya"
-              />
-            </div>
-
-            <div>
-              <input
-                type="email"
-                name="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                placeholder="Email manzili"
-              />
-            </div>
-
-            <div>
-              <input
-                type="tel"
-                name="phone"
-                required
-                value={formData.phone}
-                onChange={handleChange}
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                placeholder="Telefon raqam"
-              />
-            </div>
-
-            <div>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-              >
-                <option value="tenant">Ijarachi (Tenant)</option>
-                <option value="landlord">Ombor egasi (Landlord)</option>
-              </select>
-            </div>
-
-            {formData.role === 'landlord' && (
+          {step === 1 ? (
+            <div className="space-y-4">
               <div>
                 <input
                   type="text"
-                  name="companyName"
-                  value={formData.companyName}
+                  name="name"
+                  required
+                  value={formData.name}
                   onChange={handleChange}
-                  className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                  placeholder="Kompaniya nomi (ixtiyoriy)"
+                  className={`appearance-none relative block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm ${isDark ? 'bg-gray-800 border-gray-600 placeholder-gray-500 text-white' : 'border-gray-300 placeholder-gray-500 text-gray-900'}`}
+                  placeholder="Ism-familiya"
                 />
               </div>
-            )}
 
-            <div>
-              <input
-                type="password"
-                name="password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                placeholder="Parol"
-              />
-            </div>
+              <div>
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                  className={`appearance-none relative block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm ${isDark ? 'bg-gray-800 border-gray-600 placeholder-gray-500 text-white' : 'border-gray-300 placeholder-gray-500 text-gray-900'}`}
+                  placeholder="Email manzili"
+                />
+              </div>
 
-            <div>
-              <input
-                type="password"
-                name="confirmPassword"
-                required
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                placeholder="Parolni tasdiqlang"
-              />
+              <div>
+                <input
+                  type="tel"
+                  name="phone"
+                  required
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className={`appearance-none relative block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm ${isDark ? 'bg-gray-800 border-gray-600 placeholder-gray-500 text-white' : 'border-gray-300 placeholder-gray-500 text-gray-900'}`}
+                  placeholder="Telefon raqam (90 123 45 67)"
+                />
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <input
+                  type="text"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  className={`appearance-none relative block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm text-center text-2xl tracking-widest ${isDark ? 'bg-gray-800 border-gray-600 placeholder-gray-500 text-white' : 'border-gray-300 placeholder-gray-500 text-gray-900'}`}
+                  placeholder="XXXXXX"
+                  maxLength={6}
+                />
+              </div>
+            </div>
+          )}
 
           <div>
             <button
@@ -189,12 +182,26 @@ const Register = () => {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
             >
-              {loading ? 'Ro\'yxatdan o\'tilmoqda...' : 'Ro\'yxatdan o\'tish'}
+              {loading ? 'Yuklanmoqda...' : step === 1 ? 'SMS kod yuborish' : 'Tasdiqlash'}
             </button>
           </div>
 
+          {step === 2 && (
+            <button
+              type="button"
+              onClick={() => {
+                setStep(1);
+                setVerificationCode('');
+                setError('');
+              }}
+              className={`w-full py-2 px-4 border rounded-md text-sm font-medium ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+            >
+              Orqaga
+            </button>
+          )}
+
           <div className="text-center">
-            <p className="text-sm text-gray-600">
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
               Hisobingiz bormi?{' '}
               <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
                 Tizimga kiring
@@ -202,6 +209,9 @@ const Register = () => {
             </p>
           </div>
         </form>
+        
+        {/* Invisible reCAPTCHA container */}
+        <div id="recaptcha-container"></div>
       </div>
     </div>
   );

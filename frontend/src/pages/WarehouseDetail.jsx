@@ -7,7 +7,7 @@ import BookingModal from '../components/BookingModal';
 import Skeleton from '../components/Loaders/Skeleton';
 import useAuthStore from '../store/authStore';
 
-const WarehouseDetail = () => {
+const WarehouseDetail = ({ isDark }) => {
   const { id } = useParams();
   const [warehouse, setWarehouse] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -59,7 +59,7 @@ const WarehouseDetail = () => {
   if (!warehouse) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <p className="text-center text-gray-600">Ombor topilmadi</p>
+        <p className={`text-center ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Ombor topilmadi</p>
       </div>
     );
   }
@@ -69,7 +69,7 @@ const WarehouseDetail = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Images */}
         <div>
-          <div className="bg-gray-200 rounded-lg h-96 mb-4 flex items-center justify-center">
+          <div className={`${isDark ? 'bg-gray-700' : 'bg-gray-200'} rounded-lg h-96 mb-4 flex items-center justify-center`}>
             {warehouse.images && warehouse.images.length > 0 ? (
               <img
                 src={warehouse.images[0]}
@@ -77,7 +77,7 @@ const WarehouseDetail = () => {
                 className="w-full h-full object-cover rounded-lg"
               />
             ) : (
-              <span className="text-gray-500">Rasm yo'q</span>
+              <span className={isDark ? 'text-gray-500' : 'text-gray-500'}>Rasm yo'q</span>
             )}
           </div>
           {warehouse.images && warehouse.images.length > 1 && (
@@ -96,50 +96,50 @@ const WarehouseDetail = () => {
 
         {/* Details */}
         <div>
-          <h1 className="text-3xl font-bold mb-4">{warehouse.title}</h1>
+          <h1 className={`text-3xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{warehouse.title}</h1>
           
           <div className="space-y-4 mb-6">
-            <div className="flex items-center text-gray-600">
+            <div className={`flex items-center ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
               <FiMapPin className="mr-2" />
               <span>{warehouse.location.address}, {warehouse.location.region}</span>
             </div>
 
-            <div className="flex items-center text-gray-600">
+            <div className={`flex items-center ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
               <FiBox className="mr-2" />
               <span>{warehouse.sizeSqm} m²</span>
             </div>
 
-            <div className="flex items-center text-gray-600">
+            <div className={`flex items-center ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
               <FiDollarSign className="mr-2" />
               <span>{warehouse.pricePerSqm.toLocaleString()} so'm/m²/oy</span>
             </div>
 
-            <div className="flex items-center text-gray-600">
+            <div className={`flex items-center ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
               <span className="mr-2">Kategoriya:</span>
-              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
+              <span className={`px-2 py-1 rounded text-sm ${isDark ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'}`}>
                 {warehouse.category}
               </span>
             </div>
 
-            <div className="flex items-center text-gray-600">
+            <div className={`flex items-center ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
               <span className="mr-2">Minimal ijaraga olish:</span>
               <span>{warehouse.minRentPeriod} oy</span>
             </div>
           </div>
 
           <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-2">Tavsif</h2>
-            <p className="text-gray-700">{warehouse.description}</p>
+            <h2 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Tavsif</h2>
+            <p className={isDark ? 'text-gray-300' : 'text-gray-700'}>{warehouse.description}</p>
           </div>
 
           {warehouse.amenities && warehouse.amenities.length > 0 && (
             <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-2">Qulayliklar</h2>
+              <h2 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Qulayliklar</h2>
               <div className="flex flex-wrap gap-2">
                 {warehouse.amenities.map((amenity, index) => (
                   <span
                     key={index}
-                    className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm"
+                    className={`px-3 py-1 rounded-full text-sm ${isDark ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800'}`}
                   >
                     {amenity}
                   </span>
@@ -158,8 +158,8 @@ const WarehouseDetail = () => {
           )}
 
           {!isAuthenticated && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <p className="text-yellow-800">
+            <div className={`border rounded-lg p-4 ${isDark ? 'bg-yellow-900/20 border-yellow-700' : 'bg-yellow-50 border-yellow-200'}`}>
+              <p className={isDark ? 'text-yellow-300' : 'text-yellow-800'}>
                 Ijaraga olish uchun{' '}
                 <a href="/login" className="font-semibold underline">
                   tizimga kiring
@@ -175,6 +175,7 @@ const WarehouseDetail = () => {
         isOpen={isBookingModalOpen}
         onClose={() => setIsBookingModalOpen(false)}
         onSubmit={handleBookingSubmit}
+        isDark={isDark}
       />
     </div>
   );
